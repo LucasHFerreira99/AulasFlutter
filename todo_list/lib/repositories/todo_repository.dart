@@ -4,19 +4,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/todo.dart';
 
+const todoListString ='todo_list';
+
 class TodoRepository {
-
-  TodoRepository(){
-    SharedPreferences.getInstance().then((value) {
-      sharedPreferences = value ;
-      print(sharedPreferences.getString("todo_list"));
-    });
-  }
-
   late SharedPreferences sharedPreferences;
 
+  Future<List<Todo>> getTodoList() async{
+    sharedPreferences = await SharedPreferences.getInstance();
+    final String jsonString = sharedPreferences.getString(todoListString) ?? '[]';
+    final List jsonDecoded = json.decode(jsonString) as List;
+    return jsonDecoded.map((e) => Todo.FromJson(e)).toList();
+  }
   void saveTodoList(List<Todo> todos){
     final String jsonString = json.encode(todos);
-    sharedPreferences.setString("todo_list", jsonString);
+    sharedPreferences.setString(todoListString, jsonString);
   }
 }

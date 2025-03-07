@@ -2,13 +2,17 @@ class Todo{
 
   Todo({required this.title, required this.dateTime});
 
+  Todo.FromJson(Map<String, dynamic> json)
+      : title = json['title'], 
+        dateTime = DateTime.parse(json['dateTime']);
+
   String title;
   DateTime dateTime;
 
   Map<String,dynamic> toJson (){
     return{
     'title': title,
-    'DateTime': dateTime.toIso8601String(),
+    'dateTime': dateTime.toIso8601String(),
     };
   }
 
