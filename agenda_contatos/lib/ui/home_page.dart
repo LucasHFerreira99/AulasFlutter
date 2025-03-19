@@ -1,9 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../helpers/contact_helper.dart';
 import 'contact_page.dart';
+
+enum OrderOptions {orderaz, orderza}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -29,6 +33,21 @@ class _HomePageState extends State<HomePage> {
         title: Text("Contatos"),
         backgroundColor: Colors.red,
         centerTitle: true,
+        actions: [
+          PopupMenuButton(
+              itemBuilder: (context) => <PopupMenuEntry<OrderOptions>>[
+                const PopupMenuItem(
+                    child: Text("Ordernar de A-Z"),
+                    value: OrderOptions.orderaz
+                ),
+                const PopupMenuItem(
+                    child: Text("Ordernar de Z-A"),
+                    value: OrderOptions.orderza
+                ),
+              ],
+            onSelected: _orderList,
+          ),
+        ],
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
@@ -81,11 +100,67 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       onTap: (){
-        _showContactPage(contact: contacts[index]);
+        _showOptions(context, index);
       },
     );
   }
 
+  void _showOptions(BuildContext context, int index){
+    showModalBottomSheet(
+        context: context,
+        builder: (context){
+          return BottomSheet(
+              onClosing: (){},
+              builder: (context){
+                return Container(
+                  padding: EdgeInsets.all(10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(10),
+                        child: TextButton(
+                          onPressed: () {
+                            launchUrlString("tel:${contacts[index].phone}");
+                          },
+                          style: TextButton.styleFrom(backgroundColor: Colors.transparent),
+                          child: Text("Ligar",style: TextStyle(color: Colors.green, fontSize: 20)),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(10),
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _showContactPage(contact: contacts[index]);
+                          },
+                          style: TextButton.styleFrom(backgroundColor: Colors.transparent),
+                          child: Text("Editar",style: TextStyle(color: Colors.blue, fontSize: 20)),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(10),
+                        child: TextButton(
+                          onPressed: () {
+                            helper.deleteContact(contacts[index].id!);
+                            setState(() {
+                              contacts.removeAt(index);
+                              Navigator.pop(context);
+                            });
+                          },
+                          style: TextButton.styleFrom(backgroundColor: Colors.transparent),
+                          child: Text("Excluir",style: TextStyle(color: Colors.red, fontSize: 20)),
+                        ),
+                      ),
+
+                  ],
+                  )
+                );
+              }
+          );
+        });
+
+  }
   void _showContactPage({Contact? contact}) async {
     final recContact = await Navigator.push(
       context,
@@ -108,5 +183,21 @@ class _HomePageState extends State<HomePage> {
         contacts = list;
       });
     });
+  }
+
+  void _orderList(OrderOptions result){
+    switch(result){
+      case OrderOptions.orderaz:
+        contacts.sort((a,b) {
+          return a.name!.toLowerCase().compareTo(b.name!.toLowerCase());
+        });
+        break;
+      case OrderOptions.orderza:
+        contacts.sort((a,b) {
+          return b.name!.toLowerCase().compareTo(a.name!.toLowerCase());
+        });
+        break;
+    }
+    setState(() {});
   }
 }

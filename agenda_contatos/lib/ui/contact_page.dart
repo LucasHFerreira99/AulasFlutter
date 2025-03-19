@@ -1,6 +1,7 @@
 import "dart:io";
 
 import "package:flutter/material.dart";
+import "package:image_picker/image_picker.dart";
 
 import "../helpers/contact_helper.dart";
 
@@ -18,7 +19,7 @@ class _ContactPageState extends State<ContactPage> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
 
-
+  final ImagePicker _picker = ImagePicker();
   final _nameFocus = FocusNode();
 
   late Contact _editedContact;
@@ -42,7 +43,6 @@ class _ContactPageState extends State<ContactPage> {
       canPop: false, // Impede a navegação para a página anterior
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          // Exiba seu diálogo de confirmação aqui, se necessário
           _requestPop(context);
         }
       },
@@ -80,6 +80,9 @@ class _ContactPageState extends State<ContactPage> {
                       )
                   ),
                 ),
+                onTap: (){
+                  _showImageSourceDialog(context);
+                },
               ),
               TextField(
                 controller: _nameController,
@@ -115,6 +118,36 @@ class _ContactPageState extends State<ContactPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _showImageSourceDialog(BuildContext context) async {
+    final ImageSource? source = await showDialog<ImageSource>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Escolha a origem da imagem'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context, ImageSource.camera),
+              child: const Text('Câmera'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, ImageSource.gallery),
+              child: const Text('Galeria'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (source != null) {
+      final XFile? file = await _picker.pickImage(source: source);
+      if (file == null) return;
+      setState(() {
+        _editedContact.img = file.path;
+        _userEdited = true;
+      });
+    }
   }
 
   Future<bool> _requestPop(BuildContext context) async {
