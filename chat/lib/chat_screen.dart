@@ -21,6 +21,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final GoogleSignIn googleSignIn = GoogleSignIn();
   User? _currentUser;
+  bool _isLoading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
@@ -84,8 +85,15 @@ class _ChatScreenState extends State<ChatScreen> {
       String base64img = base64Encode(uint8list);
       data['base64img'] = base64img;
     }
+    setState(() {
+      _isLoading = true;
+    });
 
     FirebaseFirestore.instance.collection('messages').add(data);
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Image _showFile(String base64) {
@@ -96,16 +104,35 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Olá"),
+        title: Text(
+          _currentUser != null ? 'Olá, ${_currentUser!.displayName}' : 'Chat App',
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.blue,
+        actions: [
+          _currentUser != null ? IconButton(
+              onPressed: (){
+                FirebaseAuth.instance.signOut();
+                googleSignIn.signOut();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Você saiu com sucesso!'),
+                  ),
+                );
+              },
+              icon: Icon(Icons.exit_to_app),
+              color: Colors.white,
+          ) : Container()
+        ],
       ),
       body: Column(
         children: [
           Expanded(
             child: StreamBuilder(
               stream:
-                  FirebaseFirestore.instance.collection('messages').snapshots(),
+                  FirebaseFirestore.instance.collection('messages').orderBy('timestamp').snapshots(),
               builder: (context, snapshot) {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:
@@ -121,13 +148,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       itemCount: documents.length,
                       itemBuilder: (context, index) {
                         var data = documents[index].data() as Map<String, dynamic>;
-                        return ChatMessage(data: documents[index].data() as Map<String, dynamic>?, mine: true);
+                        return ChatMessage(data: documents[index].data() as Map<String, dynamic>?, mine: (documents[index].data() as Map<String, dynamic>)['uid'] == _currentUser?.uid);
                       },
                     );
                 }
               },
             ),
           ),
+          _isLoading ? LinearProgressIndicator() : Container(),
           TextComposer(sendMessage: _sendMessage),
         ],
       ),
