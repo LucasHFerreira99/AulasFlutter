@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "123139347138",
+    "project_id": "lojaflutter-1073d",
+    "storage_bucket": "lojaflutter-1073d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123139347138:android:c2a4fe804c1707821fa15b",
+        "android_client_info": {
+          "package_name": "br.com.lucashferreira.loja_virtual"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBt6hB8F-qK8NQjL_4K0pE9kVhDABzFkMw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
